@@ -1,0 +1,94 @@
+Alicia Persad 
+Final Project
+12/5/2024
+
+
+# Load necessary libraries
+library(ggplot2)
+library(dplyr)
+library(ineq)
+
+getwd()
+load("/Users/princessalicia3/Documents/acs2021_recoded (1).RData")
+crime_data <- read.csv("~/Documents/NYPD_Arrest_Data__Year_to_Date__20241205.csv")
+
+
+Hypothesis on Race & Gender In NYC: The distribution of crime types differs significantly between genders within racial groups, 
+with males exhibiting higher arrest rates for violent offenses across all racial categories.
+
+# Analyze arrests by race and gender
+race_gender_counts <- crime_data %>%
+  group_by(PERP_RACE, PERP_SEX) %>%
+  summarise(Count = n(), .groups = 'drop')
+
+# Create a bar plot
+ggplot(race_gender_counts, aes(x = PERP_RACE, y = Count, fill = PERP_SEX)) +
+  geom_bar(stat = "identity", position = "dodge") +
+  labs(title = "Arrests by Race and Gender",
+       x = "Race",
+       y = "Number of Arrests",
+       fill = "Gender") +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+
+# Display the table
+print(race_gender_counts)
+
+
+
+Tables on NYC Boroughs:
+# Load the NYC crime dataset
+crime_data <- read.csv("~/Downloads/NYPD_Arrest_Data.csv")
+
+# Summarize crime rates by borough
+crime_summary <- crime_data %>%
+  group_by(ARREST_BORO) %>%
+  summarize(
+    total_crimes = n(),
+    .groups = "drop"
+  )
+
+# Placeholder income inequality data for NYC boroughs
+# Replace with actual data if available
+income_inequality <- data.frame(
+  BORO = c("BRONX", "BROOKLYN", "MANHATTAN", "QUEENS", "STATEN ISLAND"),
+  gini_index = c(0.52, 0.50, 0.53, 0.48, 0.45)  # Example Gini coefficients
+)
+
+
+# Example: Assuming we have income inequality data for boroughs (e.g., Gini coefficient for each borough)
+# Create a sample income inequality dataset for demonstration
+income_inequality <- data.frame(
+  ARREST_BORO = c("B", "Q", "M", "S", "BK"),  # Bronx, Queens, Manhattan, Staten Island, Brooklyn
+  Gini_Coefficient = c(0.52, 0.46, 0.54, 0.43, 0.48)  # Example Gini coefficients
+)
+
+
+Arrests based on Income Inequality & Boroughs:
+# Merge the datasets
+merged_data <- nypd_data %>%
+  group_by(ARREST_BORO) %>%
+  summarise(Total_Arrests = n(), .groups = 'drop') %>%
+  left_join(income_inequality, by = "ARREST_BORO")
+
+# Categorize boroughs into low and high income inequality
+merged_data <- merged_data %>%
+  mutate(Inequality_Level = ifelse(Gini_Coefficient < 0.5, "Low Inequality", "High Inequality"))
+
+# Plot arrests by borough and income inequality level
+ggplot(merged_data, aes(x = ARREST_BORO, y = Total_Arrests, fill = Inequality_Level)) +
+  geom_bar(stat = "identity") +
+  labs(title = "Arrests by Boroughs and Income Inequality Levels",
+       x = "Borough",
+       y = "Number of Arrests",
+       fill = "Income Inequality Level") +
+  theme_minimal()
+
+# Print the summary table
+print(merged_data)
+
+
+
+
+
+
