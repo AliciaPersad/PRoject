@@ -2,19 +2,17 @@ Alicia Persad
 Final Project
 12/5/2024
 
-
-# Load necessary libraries
 library(ggplot2)
 library(dplyr)
 library(ineq)
 
 getwd()
-load("/Users/princessalicia3/Documents/acs2021_recoded (1).RData")
+load("~/Library/Mobile Documents/com~apple~CloudDocs/b2000/acs2021_recoded.RData")
 crime_data <- read.csv("~/Documents/NYPD_Arrest_Data__Year_to_Date__20241205.csv")
 
-
-Hypothesis on Race & Gender In NYC: The distribution of crime types differs significantly between genders within racial groups, 
-with males exhibiting higher arrest rates for violent offenses across all racial categories.
+# Load necessary libraries
+library(dplyr)
+library(ggplot2)
 
 # Analyze arrests by race and gender
 race_gender_counts <- crime_data %>%
@@ -35,8 +33,6 @@ ggplot(race_gender_counts, aes(x = PERP_RACE, y = Count, fill = PERP_SEX)) +
 print(race_gender_counts)
 
 
-
-Tables on NYC Boroughs:
 # Load the NYC crime dataset
 crime_data <- read.csv("~/Downloads/NYPD_Arrest_Data.csv")
 
@@ -55,6 +51,34 @@ income_inequality <- data.frame(
   gini_index = c(0.52, 0.50, 0.53, 0.48, 0.45)  # Example Gini coefficients
 )
 
+# Merge crime data and income inequality data
+crime_summary$ARREST_BORO <- toupper(crime_summary$ARREST_BORO)
+income_inequality$ARREST_BORO <- toupper(income_inequality$ARREST_BORO)
+
+crime_data <- merge(crime_summary, income_inequality,"ARREST_BORO")
+
+# Check the merged dataset
+print(data_combined)
+
+# Plot the relationship between income inequality and crime rates
+ggplot(crime_data, aes(x = gini_index, y = total_crimes, label = ARREST_BORO)) +
+  geom_point(size = 3, color = "blue") +
+  geom_text(vjust = -0.5, hjust = 0.5, size = 3.5) +
+  labs(
+    title = "Income Inequality vs. Crime Rates in NYC",
+    x = "Gini Index (Income Inequality)",
+    y = "Total Crimes"
+  ) +
+  theme_minimal()
+
+
+
+# Load necessary libraries
+library(ggplot2)
+library(dplyr)
+
+# Read the NYPD Arrest dataset
+nypd_data <- read.csv("~/Documents/NYPD_Arrest_Data__Year_to_Date__20241205.csv")
 
 # Example: Assuming we have income inequality data for boroughs (e.g., Gini coefficient for each borough)
 # Create a sample income inequality dataset for demonstration
@@ -63,8 +87,6 @@ income_inequality <- data.frame(
   Gini_Coefficient = c(0.52, 0.46, 0.54, 0.43, 0.48)  # Example Gini coefficients
 )
 
-
-Arrests based on Income Inequality & Boroughs:
 # Merge the datasets
 merged_data <- nypd_data %>%
   group_by(ARREST_BORO) %>%
@@ -89,6 +111,817 @@ print(merged_data)
 
 
 
+# Summarize Crime Types
+crime_types <- crime_data %>%
+  group_by(OFNS_DESC) %>%
+  summarise(Crime_Count = n(), .groups = "drop") %>%
+  arrange(desc(Crime_Count)) %>%
+  top_n(10, wt = Crime_Count) # Top 10 crime types
+
+# Bar Plot
+ggplot(crime_types, aes(x = reorder(OFNS_DESC, -Crime_Count), y = Crime_Count)) +
+  geom_bar(stat = "identity", fill = "steelblue") +
+  labs(title = "Top 10 Crime Types in NYC",
+       x = "Offense Type",
+       y = "Number of Arrests") +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
 
 
+Load necessary libraries
+library(dplyr)
+library(ggplot2)
+library(lubridate)
+
+# Load datasets
+shooting_data <- read.csv("~/Documents/NYPD_Shooting_Incident_Data__Historic__20241212.csv")
+arrest_data <- read.csv("~/Documents/NYPD_Arrest_Data__Year_to_Date__20241205.csv")
+
+# Inspect datasets
+str(shooting_data)
+str(arrest_data)
+
+# Ensure column names are consistent
+to_lower <- function(df) {
+  colnames(df) <- tolower(colnames(df))
+  return(df)
+}
+
+shooting_data <- to_lower(shooting_data)
+arrest_data <- to_lower(arrest_data)
+
+# Example: Adjust column names if needed
+# colnames(shooting_data)[colnames(shooting_data) == "your_column"] <- "borough"
+# colnames(arrest_data)[colnames(arrest_data) == "your_column"] <- "borough"
+
+# Topics Analysis
+
+# 1. Crime Rates by Borough
+crime_rate_by_borough <- shooting_data %>%
+  group_by(boro) %>%
+  summarise(total_shootings = n())
+
+ggplot(crime_rate_by_borough, aes(x = reorder(boro, -total_shootings), y = total_shootings)) +
+  geom_bar(stat = "identity", fill = "steelblue") +
+  labs(title = "Crime Rates by Borough", x = "Borough", y = "Total Shootings") +
+  theme_minimal()
+
+# 2. Crime Type Distribution by Borough
+crime_type_dist <- arrest_data %>%
+  group_by(arrest_boro, ofns_desc) %>%
+  summarise(count = n()) %>%
+  arrange(desc(count))
+
+# Top 10 crime types by borough
+top_crime_types <- crime_type_dist %>%
+  group_by(arrest_boro) %>%
+  slice_max(count, n = 10)
+
+ggplot(top_crime_types, aes(x = reorder(ofns_desc, -count), y = count, fill = arrest_boro)) +
+  geom_bar(stat = "identity", position = "dodge") +
+  labs(title = "Top Crime Types by Borough", x = "Crime Type", y = "Count") +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+
+
+# 4. Demographics and Crime
+arrest_demographics <- arrest_data %>%
+  group_by(arrest_boro, age_group, perp_race, perp_sex) %>%
+  summarise(count = n()) %>%
+  arrange(desc(count))
+
+ggplot(arrest_demographics, aes(x = age_group, y = count, fill = arrest_boro)) +
+  geom_bar(stat = "identity", position = "dodge") +
+  labs(title = "Arrests by Age Group and Borough", x = "Age Group", y = "Count") +
+  theme_minimal()
+
+# 5. Crime Hotspots
+hotspots <- shooting_data %>%
+  group_by(boro, precinct) %>%
+  summarise(total_shootings = n()) %>%
+  arrange(desc(total_shootings))
+
+ggplot(hotspots, aes(x = reorder(precinct, -total_shootings), y = total_shootings, fill = boro)) +
+  geom_bar(stat = "identity") +
+  labs(title = "Shooting Hotspots by Precinct", x = "Precinct", y = "Total Shootings") +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+
+
+Logistic Model:
+
+# Load the datasets
+shooting_data <- read.csv("~/Documents/NYPD_Shooting_Incident_Data__Historic__20241212.csv")
+arrest_data <- read.csv("~/Documents/NYPD_Arrest_Data__Year_to_Date__20241205.csv")
+
+# Standardize borough names
+shooting_data$BORO <- toupper(shooting_data$BORO)
+arrest_data$ARREST_BORO <- toupper(arrest_data$ARREST_BORO)
+
+# Create a matching key
+shooting_data$MATCH_KEY <- paste(shooting_data$BORO, shooting_data$OCCUR_DATE, sep = "_")
+arrest_data$MATCH_KEY <- paste(arrest_data$ARREST_BORO, arrest_data$ARREST_DATE, sep = "_")
+
+# Merge datasets on MATCH_KEY
+merged_data <- merge(arrest_data, shooting_data[, c("MATCH_KEY", "STATISTICAL_MURDER_FLAG")],
+                     by = "MATCH_KEY", all.x = TRUE)
+
+# Create a binary variable `firearm_involved`
+merged_data$firearm_involved <- ifelse(is.na(merged_data$STATISTICAL_MURDER_FLAG), 0, 1)
+
+# Select relevant columns for logistic regression
+logistic_data <- merged_data[, c("firearm_involved", "ARREST_BORO", "AGE_GROUP")]
+
+# Remove rows with missing values
+logistic_data <- na.omit(logistic_data)
+
+# Convert categorical variables to factors
+logistic_data$ARREST_BORO <- as.factor(logistic_data$ARREST_BORO)
+logistic_data$AGE_GROUP <- as.factor(logistic_data$AGE_GROUP)
+
+# Run logistic regression
+logistic_model <- glm(firearm_involved ~ ARREST_BORO + AGE_GROUP, 
+                      data = logistic_data, family = "binomial")
+
+# Summary of the model
+summary(logistic_model)
+
+
+
+
+# Load necessary libraries
+if (!require(dplyr)) install.packages("dplyr")
+if (!require(ggplot2)) install.packages("ggplot2")
+
+library(dplyr)
+library(ggplot2)
+
+# Aggregate data: Total arrests by borough and offense description
+crime_summary <- arrest_data %>%
+  group_by(ARREST_BORO, OFNS_DESC) %>%
+  summarise(total_arrests = n(), .groups = "drop")
+
+# Plot: Heatmap of total arrests by borough and offense type
+ggplot(crime_summary, aes(x = ARREST_BORO, y = OFNS_DESC, fill = total_arrests)) +
+  geom_tile(color = "white") +
+  scale_fill_gradient(low = "lightblue", high = "darkblue", name = "Total Arrests") +
+  labs(
+    title = "Heatmap of Total Arrests by Borough and Offense Type",
+    x = "Borough",
+    y = "Offense Type"
+  ) +
+  theme_minimal() +
+  theme(
+    plot.title = element_text(hjust = 0.5, size = 14),
+    axis.text.x = element_text(angle = 45, hjust = 1),
+    axis.text.y = element_text(size = 8),
+    legend.position = "right"
+  )
+
+
+                   
+Age, Group & Gender:
+# Load necessary libraries
+if (!require(dplyr)) install.packages("dplyr")
+if (!require(ggplot2)) install.packages("ggplot2")
+
+library(dplyr)
+library(ggplot2)
+
+# Preprocess data: Aggregate shootings by age group and gender
+age_gender_summary <- shooting_data %>%
+  group_by(AGE_GROUP = VIC_AGE_GROUP, GENDER = VIC_SEX) %>%
+  summarise(total_shootings = n(), .groups = "drop") %>%
+  filter(!is.na(AGE_GROUP), !is.na(GENDER))
+
+# Replace missing or unknown gender with a placeholder
+age_gender_summary$GENDER[age_gender_summary$GENDER == "(null)"] <- "Unknown"
+
+# Plot: Grouped bar plot for total shootings by age group and gender
+ggplot(age_gender_summary, aes(x = AGE_GROUP, y = total_shootings, fill = GENDER)) +
+  geom_bar(stat = "identity", position = "dodge") +
+  labs(
+    title = "Total Shootings by Age Group and Gender",
+    x = "Age Group",
+    y = "Total Shootings",
+    fill = "Gender"
+  ) +
+  theme_minimal() +
+  theme(
+    plot.title = element_text(hjust = 0.5, size = 14),
+    axis.text.x = element_text(angle = 45, hjust = 1),
+    legend.position = "bottom"
+  )
+
+Crime & Inequality:
+
+# Load necessary libraries
+if (!require(dplyr)) install.packages("dplyr")
+if (!require(ggplot2)) install.packages("ggplot2")
+
+library(dplyr)
+library(ggplot2)
+
+# Example: Crime Rate vs. Income Inequality (Customize data preparation as needed)
+crime_income_summary <- arrest_data %>%
+  group_by(ARREST_BORO) %>%
+  summarise(
+    total_arrests = n(),
+    avg_income = mean(X_COORD_CD, na.rm = TRUE),  # Replace with actual income column
+    .groups = "drop"
+  )
+
+# Fit linear regression model
+linear_model <- lm(total_arrests ~ avg_income, data = crime_income_summary)
+
+# Visualize: Scatter plot with regression line
+ggplot(crime_income_summary, aes(x = avg_income, y = total_arrests)) +
+  geom_point(size = 3, color = "darkblue", alpha = 0.7) +
+  geom_smooth(method = "lm", se = TRUE, color = "red", linetype = "dashed") +
+  labs(
+    title = "Relationship Between Crime Rate and Income Inequality",
+    x = "Average Income",
+    y = "Total Arrests",
+    caption = "Data Source: NYC Arrest Data"
+  ) +
+  theme_minimal() +
+  theme(
+    plot.title = element_text(hjust = 0.5, size = 16, face = "bold"),
+    axis.text.x = element_text(angle = 45, hjust = 1),
+    axis.text = element_text(size = 12),
+    axis.title = element_text(size = 14),
+    legend.position = "none"
+  )
+
+
+
+Total Arrest & Shootings by borough:
+# Load necessary libraries
+if (!requireNamespace("dplyr", quietly = TRUE)) install.packages("dplyr")
+if (!requireNamespace("ggplot2", quietly = TRUE)) install.packages("ggplot2")
+
+library(dplyr)
+library(ggplot2)
+
+# Load the datasets
+shooting_data <- read.csv("~/Documents/NYPD_Shooting_Incident_Data__Historic__20241212.csv")
+arrest_data <- read.csv("~/Documents/NYPD_Arrest_Data__Year_to_Date__20241205.csv")
+
+# Preprocess: Calculate crime rates by borough (shootings and arrests)
+# Shooting data: Total shootings by borough
+shooting_summary <- shooting_data %>%
+  group_by(BORO) %>%
+  summarise(total_shootings = n(), avg_x_coord = mean(X_COORD_CD, na.rm = TRUE)) %>%
+  filter(!is.na(BORO))
+
+# Arrest data: Total arrests by borough
+arrest_summary <- arrest_data %>%
+  group_by(ARREST_BORO) %>%
+  summarise(total_arrests = n(), avg_x_coord = mean(X_COORD_CD, na.rm = TRUE)) %>%
+  filter(!is.na(ARREST_BORO))
+
+# Merge shooting and arrest summaries
+crime_summary <- merge(
+  shooting_summary,
+  arrest_summary,
+  by.x = "BORO",
+  by.y = "ARREST_BORO",
+  all = TRUE
+)
+
+# Replace NA values with 0 for crime rates
+crime_summary[is.na(crime_summary)] <- 0
+
+# Fit a linear regression model: Total shootings vs. total arrests
+linear_model <- lm(total_shootings ~ total_arrests, data = crime_summary)
+
+# Summary of the regression model
+summary(linear_model)
+
+# Visualize: Scatter plot with regression line
+ggplot(crime_summary, aes(x = total_arrests, y = total_shootings, label = BORO)) +
+  geom_point(size = 4, color = "blue", alpha = 0.7) +
+  geom_smooth(method = "lm", color = "red", linetype = "dashed", se = TRUE) +
+  geom_text(nudge_y = 5, size = 3.5, color = "darkblue") +
+  labs(
+    title = "Relationship Between Total Arrests and Total Shootings by Borough",
+    x = "Total Arrests",
+    y = "Total Shootings"
+  ) +
+  theme_minimal() +
+  theme(
+    plot.title = element_text(hjust = 0.5, size = 16, face = "bold"),
+    axis.text = element_text(size = 12),
+    axis.title = element_text(size = 14)
+  )
+
+# Visualize: Bar plot of total arrests and shootings by borough
+ggplot(crime_summary, aes(x = reorder(BORO, -total_arrests))) +
+  geom_bar(aes(y = total_arrests, fill = "Total Arrests"), stat = "identity", position = "dodge") +
+  geom_bar(aes(y = total_shootings, fill = "Total Shootings"), stat = "identity", position = "dodge") +
+  labs(
+    title = "Total Arrests and Shootings by Borough",
+    x = "Borough",
+    y = "Total Counts",
+    fill = "Crime Type"
+  ) +
+  theme_minimal() +
+  theme(
+    plot.title = element_text(hjust = 0.5, size = 16, face = "bold"),
+    axis.text = element_text(size = 12),
+    axis.title = element_text(size = 14),
+    legend.position = "bottom"
+  )
+
+
+
+Linear Regression:
+
+
+
+
+
+
+
+
+
+
+
+
+
+US & NYC DATA:
+
+# Load datasets
+us_crime <- read.csv("~/Documents/US_Crime_DataSet.csv")
+crime_data <- read.csv("~/Documents/NYPD_Arrest_Data__Year_to_Date__20241205.csv")
+load("~/Documents/acs2021_recoded.RData")  # Adjust based on the actual variable name in the RData file
+
+# Combine and prepare datasets
+# Summarize US crime rates
+us_summary <- us_crime %>%
+  group_by(State, Year) %>%
+  summarise(Total_Crimes = n(), .groups = 'drop')
+
+# Summarize NYPD crime rates
+nypd_summary <- crime_data %>%
+  mutate(Year = as.numeric(format(as.Date(ARREST_DATE, "%m/%d/%Y"), "%Y"))) %>%
+  group_by(Year) %>%
+  summarise(NYC_Crimes = n(), .groups = 'drop')
+
+# Merge US and NY crime data
+crime_data <- full_join(us_summary, nypd_summary, by = "Year")
+
+
+
+
+
+US & NYC Ages:
+  # Load datasets
+  us_crime <- read.csv("~/Documents/gun-violence-data_01-2013_03-2018.csv")
+nyc_shooting_data <- read.csv("~/Documents/NYPD_Shooting_Incident_Data__Historic__20241212.csv")
+
+# Process US Crime Dataset
+# Assuming the `participant_age` column exists for age in US dataset
+us_age_data <- us_crime %>%
+  select(date, participant_age) %>%
+  mutate(
+    Age = as.numeric(gsub(".*?::", "", participant_age)),  # Extract age
+    Source = "US"
+  ) %>%
+  filter(!is.na(Age) & Age > 0)  # Filter valid ages
+
+# Process NYC Shooting Dataset
+# Assuming the `PERP_AGE_GROUP` column exists for perpetrator age in NYC dataset
+nyc_age_data <- nyc_shooting_data %>%
+  select(OCCUR_DATE, PERP_AGE_GROUP) %>%
+  mutate(
+    Age = case_when(
+      PERP_AGE_GROUP == "<18" ~ 17,  # Approximation for under 18
+      PERP_AGE_GROUP == "18-24" ~ 21,
+      PERP_AGE_GROUP == "25-44" ~ 34,
+      PERP_AGE_GROUP == "45-64" ~ 54,
+      PERP_AGE_GROUP == "65+" ~ 70,
+      TRUE ~ NA_real_
+    ),
+    Source = "NYC"
+  ) %>%
+  filter(!is.na(Age))
+
+# Combine US and NYC Age Data
+combined_age_data <- bind_rows(us_age_data, nyc_age_data)
+
+# Plot Age Distribution by Source
+ggplot(combined_age_data, aes(x = Age, fill = Source)) +
+  geom_histogram(position = "dodge", bins = 15, alpha = 0.7) +
+  labs(
+    title = "Age Distribution of Crimes Committed (US vs NYC)",
+    x = "Age of Perpetrator",
+    y = "Frequency",
+    fill = "Source"
+  ) +
+  theme_minimal() +
+  theme(
+    plot.title = element_text(hjust = 0.5)
+  )
+
+
+
+
+NYC & US Gun Violence
+
+# Load datasets
+nyc_shooting_data <- read.csv("~/Documents/NYPD_Shooting_Incident_Data__Historic__20241212.csv")
+us_gun_violence <- read.csv("~/Documents/gun-violence-data_01-2013_03-2018.csv")
+
+# Process NYC Shooting Data
+nyc_summary <- nyc_shooting_data %>%
+  mutate(
+    OCCUR_DATE = as.Date(OCCUR_DATE, format = "%m/%d/%Y"),  # Ensure proper date parsing
+    Year = format(OCCUR_DATE, "%Y")
+  ) %>%
+  group_by(Year) %>%
+  summarise(NYC_Shooting_Incidents = n(), .groups = "drop")
+
+# Process US Gun Violence Data
+us_summary <- us_gun_violence %>%
+  mutate(
+    date = as.Date(date, format = "%Y-%m-%d"),  # Ensure proper date parsing
+    Year = format(date, "%Y")
+  ) %>%
+  group_by(Year) %>%
+  summarise(US_Gun_Violence_Incidents = n(), .groups = "drop")
+
+# Combine NYC and US data by year
+combined_data <- full_join(nyc_summary, us_summary, by = "Year")
+
+# Convert Year back to numeric for plotting
+combined_data$Year <- as.numeric(combined_data$Year)
+
+# Plot the data
+ggplot(combined_data, aes(x = Year)) +
+  geom_line(aes(y = NYC_Shooting_Incidents, color = "NYC Shooting Incidents"), size = 1) +
+  geom_line(aes(y = US_Gun_Violence_Incidents, color = "US Gun Violence Incidents"), size = 1) +
+  labs(
+    title = "Comparison of NYC Shootings and US Gun Violence Incidents (Yearly)",
+    x = "Year",
+    y = "Number of Incidents",
+    color = "Legend"
+  ) +
+  theme_minimal() +
+  theme(
+    plot.title = element_text(hjust = 0.5),
+    legend.position = "top"
+  )
+
+
+
+
+# Load necessary libraries
+library(dplyr)
+library(ggplot2)
+library(tidyr)
+
+# Load Arrest Data
+arrest_data <- read.csv("~/Documents/NYPD_Arrest_Data__Year_to_Date__20241205.csv")
+
+# Summarize arrests by borough
+arrest_summary <- arrest_data %>%
+  group_by(ARREST_BORO) %>%
+  summarise(Total_Arrests = n(), .groups = 'drop')
+
+# Define Income Inequality Data (Gini Coefficients)
+income_inequality <- data.frame(
+  ARREST_BORO = c("B", "Q", "M", "S", "BK"),  # Bronx, Queens, Manhattan, Staten Island, Brooklyn
+  Gini_Coefficient = c(0.52, 0.46, 0.54, 0.43, 0.48)  # Example values
+)
+
+# Merge Arrest Data with Income Inequality
+merged_data <- arrest_summary %>%
+  left_join(income_inequality, by = "ARREST_BORO") %>%
+  mutate(Inequality_Level = ifelse(Gini_Coefficient < 0.5, "Low Inequality", "High Inequality"))
+
+# Summarize data for the pie chart
+pie_data <- merged_data %>%
+  group_by(Inequality_Level) %>%
+  summarise(Total_Arrests = sum(Total_Arrests), .groups = 'drop')
+
+# Create Descriptive Pie Chart
+ggplot(pie_data, aes(x = "", y = Total_Arrests, fill = Inequality_Level)) +
+  geom_bar(stat = "identity", width = 1) +
+  coord_polar("y", start = 0) +
+  geom_text(aes(label = paste0(Inequality_Level, "\n", round(Total_Arrests/sum(Total_Arrests) * 100, 1), "%")), 
+            position = position_stack(vjust = 0.5), color = "white", size = 5) +
+  labs(
+    title = "NYC Crime Rates and Income Inequality Levels",
+    subtitle = "Distribution of Arrests by Income Inequality Categories",
+    caption = "Data Source: NYPD Arrest Data 2024\nIncome Inequality: Gini Index",
+    fill = "Income Inequality Level"
+  ) +
+  theme_minimal() +
+  theme(
+    plot.title = element_text(hjust = 0.5, size = 16, face = "bold"),
+    plot.subtitle = element_text(hjust = 0.5, size = 12),
+    axis.text = element_blank(),
+    axis.ticks = element_blank(),
+    panel.grid = element_blank()
+  )
+
+
+
+
+# Summarize Arrests by Borough
+arrest_summary <- arrest_data %>%
+  group_by(ARREST_BORO) %>%
+  summarise(Total_Arrests = n())
+
+# Merge Arrests with Income Inequality
+arrest_inequality <- arrest_summary %>%
+  left_join(income_inequality, by = c("ARREST_BORO" = "BORO")) %>%
+  mutate(Inequality_Level = ifelse(Gini_Coefficient < 0.5, "Low Inequality", "High Inequality"))
+
+# Pie Chart: Arrests and Income Inequality
+pie_data <- arrest_inequality %>%
+  group_by(Inequality_Level) %>%
+  summarise(Count = sum(Total_Arrests))
+
+ggplot(pie_data, aes(x = "", y = Count, fill = Inequality_Level)) +
+  geom_bar(stat = "identity", width = 1) +
+  coord_polar("y", start = 0) +
+  labs(
+    title = "Arrests and Income Inequality in NYC",
+    subtitle = "Distribution of Arrests by Inequality Level",
+    fill = "Income Inequality"
+  ) +
+  theme_minimal()
+
+
+
+# Summarize Arrests by Race
+race_summary <- arrest_data %>%
+  group_by(PERP_RACE) %>%
+  summarise(Total_Arrests = n()) %>%
+  arrange(desc(Total_Arrests))
+
+# Create a Pie Chart: Race and Income Inequality
+ggplot(race_summary, aes(x = "", y = Total_Arrests, fill = PERP_RACE)) +
+  geom_bar(stat = "identity", width = 1) +
+  coord_polar("y", start = 0) +
+  labs(
+    title = "Arrests by Race in NYC",
+    subtitle = "Proportion of Arrests by Race",
+    fill = "Race"
+  ) +
+  theme_minimal()
+
+
+
+
+
+# Load necessary libraries
+library(dplyr)
+library(ggplot2)
+library(tidyr)
+# Load datasets
+arrest_data <- read.csv("~/Documents/NYPD_Arrest_Data__Year_to_Date__20241205.csv")
+shooting_data <- read.csv("~/Documents/NYPD_Shooting_Incident_Data__Historic__20241212.csv")
+
+# Step 1: Standardize Borough Names
+arrest_data$ARREST_BORO <- toupper(arrest_data$ARREST_BORO)
+shooting_data$BORO <- toupper(shooting_data$BORO)
+
+# Step 2: Summarize Arrests by Borough
+arrest_summary <- arrest_data %>%
+  group_by(ARREST_BORO) %>%
+  summarise(Total_Arrests = n())
+
+# Step 3: Summarize Shootings by Borough
+shooting_summary <- shooting_data %>%
+  group_by(BORO) %>%
+  summarise(Total_Shootings = n())
+
+# Step 4: Income Inequality Data (Gini Coefficients)
+income_inequality <- data.frame(
+  BORO = c("B", "Q", "M", "S", "BK"),  # Bronx, Queens, Manhattan, Staten Island, Brooklyn
+  Gini_Coefficient = c(0.52, 0.46, 0.54, 0.43, 0.48)
+)
+
+# Step 5: Combine Arrests, Shootings, and Inequality Data
+combined_data <- arrest_summary %>%
+  full_join(shooting_summary, by = c("ARREST_BORO" = "BORO")) %>%
+  left_join(income_inequality, by = c("ARREST_BORO" = "BORO")) %>%
+  replace_na(list(Total_Arrests = 0, Total_Shootings = 0)) %>%
+  mutate(Total_Crime = Total_Arrests + Total_Shootings)
+
+# Step 6: Create Linear Regression Model
+linear_model <- lm(Total_Crime ~ Gini_Coefficient, data = combined_data)
+model_summary <- summary(linear_model)
+
+# Step 7: Visualize the Linear Regression Dot Plot
+ggplot(combined_data, aes(x = Gini_Coefficient, y = Total_Crime, label = ARREST_BORO)) +
+  geom_point(size = 5, color = "blue", alpha = 0.7) +  # Plot points
+  geom_smooth(method = "lm", se = TRUE, color = "red", linetype = "dashed") +  # Regression line
+  geom_text(nudge_y = 20, size = 4, color = "darkblue") +  # Add borough labels
+  labs(
+    title = "Linear Regression of Total Crime vs. Income Inequality in NYC Boroughs",
+    subtitle = "Relationship between Gini Coefficient (Income Inequality) and Total Crime (Arrests + Shootings)",
+    x = "Gini Coefficient (Income Inequality)",
+    y = "Total Crime (Arrests + Shootings)",
+    caption = paste(
+      "Linear Model Summary:",
+      "\nR-squared: ", round(model_summary$r.squared, 3),
+      "| Adjusted R-squared: ", round(model_summary$adj.r.squared, 3),
+      "\nP-value: ", signif(model_summary$coefficients[2, 4], 3)
+    )
+  ) +
+  theme_minimal() +
+  theme(
+    plot.title = element_text(hjust = 0.5, size = 16, face = "bold"),
+    plot.subtitle = element_text(hjust = 0.5, size = 12),
+    axis.title = element_text(size = 12, face = "bold"),
+    axis.text = element_text(size = 10),
+    plot.caption = element_text(size = 10, hjust = 0),
+    panel.grid.major = element_line(color = "grey80", linetype = "dotted")
+  )
+
+
+
+
+# Load necessary libraries
+library(dplyr)
+library(ggplot2)
+library(tidyr)
+# Load datasets
+arrest_data <- read.csv("~/Documents/NYPD_Arrest_Data__Year_to_Date__20241205.csv")
+shooting_data <- read.csv("~/Documents/NYPD_Shooting_Incident_Data__Historic__20241212.csv")
+
+# Step 1: Standardize Borough Names
+arrest_data$ARREST_BORO <- toupper(arrest_data$ARREST_BORO)
+shooting_data$BORO <- toupper(shooting_data$BORO)
+
+# Step 2: Summarize Arrests by Borough
+arrest_summary <- arrest_data %>%
+  group_by(ARREST_BORO) %>%
+  summarise(Total_Arrests = n())
+
+# Step 3: Summarize Shootings by Borough
+shooting_summary <- shooting_data %>%
+  group_by(BORO) %>%
+  summarise(Total_Shootings = n())
+
+# Step 4: Income Inequality Data (Gini Coefficient)
+income_inequality <- data.frame(
+  BORO = c("B", "Q", "M", "S", "BK"),  # Bronx, Queens, Manhattan, Staten Island, Brooklyn
+  Gini_Coefficient = c(0.52, 0.46, 0.54, 0.43, 0.48)
+)
+
+# Step 5: Combine Data into a Single Table
+combined_data <- arrest_summary %>%
+  full_join(shooting_summary, by = c("ARREST_BORO" = "BORO")) %>%
+  left_join(income_inequality, by = c("ARREST_BORO" = "BORO")) %>%
+  replace_na(list(Total_Arrests = 0, Total_Shootings = 0)) %>%
+  mutate(Total_Crime = Total_Arrests + Total_Shootings)
+
+
+
+U.S.& NYC
+# Load datasets
+us_crime <- read.csv("~/Documents/US_Crime_DataSet.csv")
+crime_data <- read.csv("~/Documents/NYPD_Arrest_Data__Year_to_Date__20241205.csv")
+
+# Process the US crime dataset
+us_summary <- us_crime %>%
+  group_by(State, Year) %>%
+  summarise(Total_Crimes = n(), .groups = "drop") %>%
+  group_by(Year) %>%
+  summarise(Total_Crimes = sum(Total_Crimes), .groups = "drop")
+
+# Ensure Year is character
+us_summary$Year <- as.character(us_summary$Year)
+
+# Process the NYC crime dataset
+nypd_summary <- crime_data %>%
+  mutate(
+    ARREST_DATE = as.Date(ARREST_DATE, format = "%m/%d/%Y"),
+    Year = format(ARREST_DATE, "%Y")
+  ) %>%
+  group_by(Year) %>%
+  summarise(NYC_Crimes = n(), .groups = "drop")
+
+# Ensure Year is character
+nypd_summary$Year <- as.character(nypd_summary$Year)
+
+# Merge the US and NYC crime summaries
+merged_data <- full_join(us_summary, nypd_summary, by = "Year")
+
+# Check the merged dataset
+print(head(merged_data))
+str(merged_data)
+
+# Convert Year back to numeric for plotting
+merged_data$Year <- as.numeric(merged_data$Year)
+
+# Plot the data
+ggplot(merged_data, aes(x = Year)) +
+  geom_line(aes(y = Total_Crimes, color = "US Total Crimes"), size = 1) +
+  geom_line(aes(y = NYC_Crimes, color = "NYC Crimes"), size = 1) +
+  labs(
+    title = "Crime Rates in the US and NYC (Yearly)",
+    x = "Year",
+    y = "Number of Crimes",
+    color = "Legend"
+  ) +
+  theme_minimal() +
+  theme(
+    plot.title = element_text(hjust = 0.5),
+    legend.position = "top"
+  )
+
+
+
+
+
+KNN Model based on NYC & US Shooting:
+  
+  # Load required libraries
+  library(dplyr)
+library(ggplot2)
+library(caret)
+library(class)
+
+# Load datasets
+nyc_shooting_data <- read.csv("~/Documents/NYPD_Shooting_Incident_Data__Historic__20241212.csv")
+us_gun_violence <- read.csv("~/Documents/gun-violence-data_01-2013_03-2018.csv")
+
+# Preprocess NYC Shooting Data
+nyc_summary <- nyc_shooting_data %>%
+  mutate(
+    OCCUR_DATE = as.Date(OCCUR_DATE, format = "%m/%d/%Y"),
+    Year = as.numeric(format(OCCUR_DATE, "%Y")),
+    Location = "NYC"  # Add a label for NYC
+  ) %>%
+  group_by(Year) %>%
+  summarise(
+    Incidents = n(),
+    Location = first(Location),
+    .groups = "drop"
+  )
+
+# Preprocess US Gun Violence Data
+us_summary <- us_gun_violence %>%
+  mutate(
+    date = as.Date(date, format = "%Y-%m-%d"),
+    Year = as.numeric(format(date, "%Y")),
+    Location = "US"  # Add a label for US
+  ) %>%
+  group_by(Year) %>%
+  summarise(
+    Incidents = n(),
+    Location = first(Location),
+    .groups = "drop"
+  )
+
+# Combine NYC and US Data
+combined_data <- bind_rows(nyc_summary, us_summary)
+
+# Prepare Data for KNN
+# Convert Location to a factor for classification
+combined_data$Location <- as.factor(combined_data$Location)
+
+# Handle missing values (if any)
+combined_data <- combined_data %>%
+  filter(!is.na(Incidents), !is.na(Year))
+
+# Split the Data into Training and Testing Sets
+set.seed(123)  # For reproducibility
+train_index <- createDataPartition(combined_data$Location, p = 0.8, list = FALSE)
+train_data <- combined_data[train_index, ]
+test_data <- combined_data[-train_index, ]
+
+# Scale Features (Year and Incidents)
+scale_features <- function(data) {
+  data %>%
+    mutate(
+      Year = scale(Year),
+      Incidents = scale(Incidents)
+    )
+}
+
+train_data_scaled <- scale_features(train_data)
+test_data_scaled <- scale_features(test_data)
+
+# KNN Model
+k <- 3  # Choose the number of neighbors
+knn_predictions <- knn(
+  train = train_data_scaled[, c("Year", "Incidents")],
+  test = test_data_scaled[, c("Year", "Incidents")],
+  cl = train_data_scaled$Location,
+  k = k
+)
+
+# Evaluate the Model
+confusion_matrix <- table(Predicted = knn_predictions, Actual = test_data_scaled$Location)
+print("Confusion Matrix:")
+print(confusion_matrix)
+
+# Accuracy
+accuracy <- sum(diag(confusion_matrix)) / sum(confusion_matrix)
+cat("Model Accuracy:", accuracy, "\n")
 
